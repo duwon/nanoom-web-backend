@@ -1,6 +1,7 @@
 const { redirect } = require('express/lib/response');
 
 const
+  cors = require('cors');
   express = require('express'),
   app = express(),
   formidable = require('formidable'),
@@ -11,6 +12,24 @@ const
 
 const
   port = process.env.PORT || 4444
+
+
+
+var safesitelist = ['https://nanoom.org', 'http://nanoom.org']
+
+var corsOptions = {
+    origin: function(origin, callback) {
+        var issafesitelisted = safesitelist.indexOf(origin) !== -1;
+        callback(null, issafesitelisted);
+    },
+    credentials: true
+}
+
+//cors설정
+app.use(cors());
+
+//cors에 옵션사용할경우
+//app.use(cors(corsOptions));
 
 
 app.set('port', port)
@@ -113,6 +132,11 @@ app.get('/download/:folder/:file_name/:save_name', function(req, res, next) {
 
 app.use('/files', express.static(__dirname + '/files'))
 
+app.get('/', function(req, res) {
+    res.send("<center><h1>나눔의교회 파일서버</h1></center>")
+})
+
 app.listen(port, () => {
   console.log('\nUpload server running on http://localhost:' + port)
 })
+
