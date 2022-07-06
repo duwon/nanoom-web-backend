@@ -12,31 +12,28 @@ const
 
 const
   port = process.env.PORT || 4444
+ 
+  
+var corsOptions = {
+  origin: 'https://nanoom.org',
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+app.use(cors(corsOptions));
 
-
-  
-  
-  var corsOptions = {
-    origin: 'http://nanoom.org',
-    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-  }
-  app.use(cors(corsOptions));
-  
-  app.use(logger('dev'));
-  app.set('port', port)
+app.use(logger('dev'));
+app.set('port', port)
 app.use(throttle(10 * 1024 * 1024)) // throttling bandwidth
 app.use(bodyParser.json({limit: 5000000}));
 app.use(bodyParser.urlencoded({limit: 5000000, extended: true, parameterLimit:50000}));
 app.use(cookieParser());
 
-// Maria DB Setup
-const maria = require('./nanoomDBConfig');
-maria.connect();
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+// set the secret key variable for jwt
+const { jwt } = require('./nanoomDBConfig')
+app.set('jwt-secret', jwt.secret)
 
 const whitelist = ["http://nanoom.org", "https://nanoom.org", "https://localhost", "http://localhost:8080"];
 //* cors 전용 라우터
@@ -60,14 +57,10 @@ app.use(async (req, res, next) => {
 });
 
 const indexRouter = require('./routes/index')
-const fileRouter = require('./routes/files')
-const boardRouter = require('./routes/board')
-const userRouter = require('./routes/user')
+
 app.use('/', indexRouter)
-app.use('/file', fileRouter)
 app.use('/files', express.static(__dirname + '/files'))
-app.use('/board', boardRouter)
-app.use('/user', userRouter)
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -103,5 +96,20 @@ http.createServer(app).listen(HTTP_PORT, () => {
 // Create an HTTPS server.
 https.createServer(options, app).listen(HTTPS_PORT, () => {
   console.log('\nUpload server running on https://localhost:' + HTTPS_PORT)
+})
+
+// Connect Maria DB
+const { maria } = require('./nanoomDBConfig');
+maria.connect();
+
+// Connect Mongo DB
+const mongoose = require('mongoose')
+const { mongo } = require('./nanoomDBConfig')
+mongoose.connect(mongo.Uri)
+mongoose.Promise = global.Promise
+const db = mongoose.connection
+db.on('error', console.error)
+db.once('open', ()=>{
+    console.log('connected to mongodb server')
 })
 

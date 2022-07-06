@@ -66,7 +66,7 @@ router.post('/upload/:folder', (req, res) => {
   });
 })
 
-var getDownloadFilename = require('../library/getDownloadFilename').getDownloadFilename;
+var getDownloadFilename = require('../../library/getDownloadFilename').getDownloadFilename;
 
 router.get('/download/:folder/:file_name/:save_name', function(req, res, next) {
 
