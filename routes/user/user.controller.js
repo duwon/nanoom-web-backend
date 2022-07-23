@@ -8,6 +8,7 @@ exports.list = (req, res) => {
     // refuse if not an admin
     if(!req.decoded.admin) {
         return res.status(403).json({
+            code: '403',
             message: 'you are not an admin'
         })
     }
@@ -26,6 +27,7 @@ exports.list = (req, res) => {
     POST /api/user/assign-admin/:username
 */
 exports.assignAdmin = (req, res) => {
+    console.log(req.params.email)
     // refuse if not an admin
     if(!req.decoded.admin) {
         return res.status(403).json({
@@ -33,7 +35,7 @@ exports.assignAdmin = (req, res) => {
         })
     }
 
-    User.findOneByUsername(req.params.username)
+    User.findOneByUsername(req.params.email)
     .then(
         user => {
             if(!user) throw new Error('user not found')

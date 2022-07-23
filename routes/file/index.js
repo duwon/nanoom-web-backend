@@ -14,7 +14,7 @@ router.get('/', function(req, res) {
 
 router.post('/upload', (req, res) => {
 
-  const folder = path.join(__dirname, 'files')
+  const folder = path.join(__dirname, '../../files')
 
   if (!fs.existsSync(folder)) {
     fs.mkdirSync(folder)
@@ -41,7 +41,7 @@ router.post('/upload', (req, res) => {
 
 router.post('/upload/:folder', (req, res) => {
 
-  const folder = path.join(__dirname, 'files/' + req.params.folder )
+  const folder = path.join(__dirname, '../../files/' + req.params.folder )
 
   if (!fs.existsSync(folder)) {
     fs.mkdirSync(folder)

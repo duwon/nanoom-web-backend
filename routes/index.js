@@ -6,6 +6,7 @@ const authRouter = require('./auth')
 const userRouter = require('./user')
 const fileRouter = require('./file')
 const boardRouter = require('./board')
+const bbsRouter = require('./bbs')
 
 /* GET home page. */
 router.get('/', function(req, res) {
@@ -20,5 +21,7 @@ router.use('/user', authMiddleware)
 router.use('/user', userRouter)
 router.use('/file', fileRouter)
 router.use('/board', boardRouter)
+
+router.use('/bbs', bbsRouter)
 
 module.exports = router;

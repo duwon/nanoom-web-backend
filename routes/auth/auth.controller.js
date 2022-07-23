@@ -4,21 +4,36 @@ const User = require('../../models/user')
 /*
     POST /api/auth/register
     {
-        username,
+        email,
         password
     }
 */
 
 exports.register = (req, res) => {
-    const { username, password } = req.body
+    const { email, password, displayName } = req.body
     let newUser = null
 
     // create a new user if does not exist
     const create = (user) => {
+        // check email validation
+        if(!validateEmail(email)) {
+            throw new Error('정상적인 이메일이 아닙니다.')
+        }
+
+        // cehck password
+        if(password.length < 6) {
+            throw new Error('암호가 6자리 미만입니다.')
+        }
+        
+        // check displayName
+        if(checkEngNum(displayName)) {
+            throw new Error('한글 이름만 입력하세요.')    
+        }
+
         if(user) {
-            throw new Error('username exists')
+            throw new Error('이메일이 존재합니다.')
         } else {
-            return User.create(username, password)
+            return User.create(email, password, displayName)
         }
     }
 
@@ -41,20 +56,34 @@ exports.register = (req, res) => {
     // respond to the client
     const respond = (isAdmin) => {
         res.json({
-            message: 'registered successfully',
+            message: '등록 성공',
             admin: isAdmin ? true : false
         })
     }
 
-    // run when there is an error (username exists)
+    // run when there is an error (email exists)
     const onError = (error) => {
         res.status(409).json({
             message: error.message
         })
     }
 
-    // check username duplication
-    User.findOneByUsername(username)
+    const validateEmail = (email) => {
+        const check = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i
+        return check.test(email);
+    }
+
+    const checkEngNum = (str) => {
+        const regExp = /[a-zA-Z0-9]/g;
+        if(regExp.test(str)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    // check email duplication
+    User.findOneByUsername(email)
     .then(create)
     .then(count)
     .then(assignAdmin)
@@ -71,7 +100,7 @@ exports.register = (req, res) => {
 */
 
 exports.login = (req, res) => {
-    const {username, password} = req.body
+    const {email, password} = req.body
     const secret = req.app.get('jwt-secret')
 
     // check the user info & generate the jwt
@@ -87,13 +116,14 @@ exports.login = (req, res) => {
                     jwt.sign(
                         {
                             _id: user._id,
-                            username: user.username,
+                            email: user.email,
+                            displayName: user.displayName,
                             admin: user.admin
                         }, 
                         secret, 
                         {
                             expiresIn: '7d',
-                            issuer: 'velopert.com',
+                            issuer: 'nanoom.org',
                             subject: 'userInfo'
                         }, (err, token) => {
                             if (err) reject(err)
@@ -123,7 +153,7 @@ exports.login = (req, res) => {
     }
 
     // find the user
-    User.findOneByUsername(username)
+    User.findOneByUsername(email)
     .then(check)
     .then(respond)
     .catch(onError)
@@ -136,7 +166,18 @@ exports.login = (req, res) => {
 
 exports.check = (req, res) => {
     res.json({
-        success: true,
-        info: req.decoded
+        code: '200',
+        message: '',
+        results: {
+            _id: req.decoded._id,
+            email: req.decoded.email,
+            displayName: req.decoded.displayName,
+            iat: req.decoded.iat,
+            exp: req.decoded.exp,
+        }
     })
 }
+
+/*
+    Email Validation
+*/

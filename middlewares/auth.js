@@ -7,7 +7,7 @@ const authMiddleware = (req, res, next) => {
     // token does not exist
     if(!token) {
         return res.status(403).json({
-            success: false,
+            code: '403',
             message: 'not logged in'
         })
     }
@@ -25,7 +25,7 @@ const authMiddleware = (req, res, next) => {
     // if it has failed to verify, it will return an error message
     const onError = (error) => {
         res.status(403).json({
-            success: false,
+            code: '403',
             message: error.message
         })
     }

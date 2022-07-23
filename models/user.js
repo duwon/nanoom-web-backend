@@ -6,9 +6,9 @@ const { jwt } = require('../nanoomDBConfig')
 const User = new Schema({
     email: String,
     password: String,
-    dispalyName: String,
+    displayName: String,
     phoneNumber: String,
-    group: String,
+    group: [],
     uid: String,
     title: String,
     created: { type: Date, default: Date.now },
@@ -22,14 +22,15 @@ const User = new Schema({
 
 
 // create new User document
-User.statics.create = function(email, password) {
+User.statics.create = function(email, password, displayName) {
     const encrypted = crypto.createHmac('sha1', jwt.secret)
                       .update(password)
                       .digest('base64')
-
+    console.log(email.password)
     const user = new this({
         email,
         password: encrypted,
+        displayName
     })
 
     // return the Promise
@@ -40,8 +41,8 @@ User.statics.assignGroup = function(email, group) {
     
 }
 
-User.statics.assignDispalyName = function(email, name) {
-    this.dispalyName = name
+User.statics.assignDisplayName = function(email, name) {
+    this.displayName = name
     return this.save()
 }
 
@@ -61,9 +62,10 @@ User.statics.assignTitle = function(email, title) {
 }
 
 // find one user by using username
-User.statics.findOneByUsername = function(username) {
+User.statics.findOneByUsername = function(email) {
+
     return this.findOne({
-        username
+        email
     }).exec()
 }
 
